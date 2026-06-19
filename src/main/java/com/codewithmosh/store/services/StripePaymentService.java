@@ -1,4 +1,4 @@
-package com.codewithmosh.store;
+package com.codewithmosh.store.services;
 
 public class StripePaymentService implements PaymentService {
     public void processPayment(double amount) {

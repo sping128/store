@@ -1,4 +1,4 @@
-package com.codewithmosh.store;
+package com.codewithmosh.store.services;
 
 import org.springframework.stereotype.Service;
 
