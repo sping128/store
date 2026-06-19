@@ -1,4 +1,4 @@
-package com.codewithmosh.store;
+package com.codewithmosh.store.controllers;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -12,6 +12,12 @@ public class HomeController {
     @RequestMapping("")
     public String index() {
         System.out.println("appName: " + appName);
+        return "index.html";
+    }
+
+    @RequestMapping("/hello")
+    public String hello() {
+        System.out.println("Hello");
         return "index.html";
     }
 
