@@ -6,12 +6,19 @@ import java.util.Set;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import com.codewithmosh.store.dtos.RegisterUserDto;
 import com.codewithmosh.store.dtos.UserDto;
+import com.codewithmosh.store.entities.User;
+import com.codewithmosh.store.mappers.UserMapper;
+import com.codewithmosh.store.repositories.UserRepository;
 import com.codewithmosh.store.services.UserService;
 
 import lombok.AllArgsConstructor;
@@ -20,6 +27,8 @@ import lombok.AllArgsConstructor;
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
+    private final UserRepository userRepository;
+    private final UserMapper userMapper;
     private final UserService userService;
 
     @GetMapping
@@ -40,4 +49,16 @@ public class UserController {
             return ResponseEntity.notFound().build();
         return ResponseEntity.ok(userDto);
     }
+
+    @PostMapping
+    public ResponseEntity<UserDto> createUser(
+            @RequestBody RegisterUserDto dto,
+            UriComponentsBuilder uriBuilder) {
+        User user = userMapper.toEntity(dto);
+        userRepository.save(user);
+        var userDto = userMapper.toDto(user);
+        var uri = uriBuilder.path("api/users/{id}").buildAndExpand(userDto.getId()).toUri();          
+        return ResponseEntity.created(uri).body(userDto);
+    }
+
 }
