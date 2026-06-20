@@ -2,6 +2,7 @@ package com.codewithmosh.store.services;
 
 import java.util.List;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.codewithmosh.store.dtos.UserDto;
@@ -16,8 +17,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
-    public List<UserDto> getAllUsers() {
-        return userRepository.findAll().stream()
+    public List<UserDto> getAllUsers(String sort) {
+        return userRepository.findAll(Sort.by(sort)).stream()
                 .map(userMapper::toDto).toList();
     }
 
