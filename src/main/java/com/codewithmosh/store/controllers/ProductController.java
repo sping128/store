@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.codewithmosh.store.dtos.ProductDto;
 import com.codewithmosh.store.entities.Category;
@@ -21,7 +22,6 @@ import com.codewithmosh.store.repositories.CategoryRepository;
 import com.codewithmosh.store.repositories.ProductRepository;
 
 import lombok.AllArgsConstructor;
-
 
 @AllArgsConstructor
 @RestController
@@ -43,16 +43,22 @@ public class ProductController {
         return products.stream().map(productMapper::toDto).toList();
     }
 
-    @PostMapping()
-    public ResponseEntity<ProductDto> CreateProduct(@RequestBody ProductDto dto) {
+    @PostMapping
+    public ResponseEntity<ProductDto> CreateProduct(
+            @RequestBody ProductDto dto,
+            UriComponentsBuilder uriBuilder) {
         Product product = productMapper.toEntity(dto);
         if (dto.getCategoryId() != null) {
             Category category = categoryRepository.findById(dto.getCategoryId())
-                    .orElseThrow(() -> new RuntimeException("Category not found"));
+                    .orElse(null);
+            if (category == null)
+                return ResponseEntity.badRequest().build();
             product.setCategory(category);
         }
-        Product result = productRepository.save(product);
-        return ResponseEntity.status(201).body(productMapper.toDto(result));
+        productRepository.save(product);
+        dto.setId(product.getId());
+        var uri = uriBuilder.path("/api/products/{id}").buildAndExpand(dto.getId()).toUri();
+        return ResponseEntity.created(uri).body(dto);
     }
 
     @PutMapping("{id}")
@@ -61,7 +67,9 @@ public class ProductController {
         productMapper.update(dto, product);
         if (dto.getCategoryId() != null) {
             Category category = categoryRepository.findById(dto.getCategoryId())
-                    .orElseThrow(() -> new RuntimeException("Category not found"));
+                    .orElse(null);
+            if (category == null)
+                return ResponseEntity.badRequest().build();
             product.setCategory(category);
         } else {
             product.setCategory(null);
