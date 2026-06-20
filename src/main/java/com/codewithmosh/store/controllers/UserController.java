@@ -26,10 +26,9 @@ public class UserController {
 
     @GetMapping("{id}")
     public ResponseEntity<UserDto> getUser(@PathVariable Long id) {
-        var user = userService.getUser(id);
-        if (user == null)
+        var userDto = userService.getUser(id);
+        if (userDto == null)
             return ResponseEntity.notFound().build();
-        var userDto = new UserDto(user.getId(), user.getName(), user.getEmail());
         return ResponseEntity.ok(userDto);
     }
 }
