@@ -56,14 +56,6 @@
 - Implemented full GET / POST / PUT / DELETE for both Users and Products
 - Change password endpoint (`POST /api/users/{id}/change-password`)
 
-### 14. Exception Handling with @ControllerAdvice
-- `@ControllerAdvice` + `@RestController` — a global exception handler class that intercepts exceptions from all controllers
-- `@ExceptionHandler(SomeException.class)` — routes a specific exception type to a handler method
-- `@ResponseStatus(HttpStatus.BAD_REQUEST)` — sets the HTTP status on the response
-- `MethodArgumentNotValidException.getBindingResult().getFieldErrors()` — extracts field-level validation errors
-- Each `FieldError` has `.getField()` (field name) and `.getDefaultMessage()` (constraint message)
-- Custom messages via `message = "..."` on constraint annotations (e.g. `@NotBlank(message = "Name is required")`)
-
 ### 13. Bean Validation
 - Added `spring-boot-starter-validation` dependency
 - Field-level constraint annotations: `@NotBlank`, `@Email`, `@Size(min = ?)`
@@ -71,3 +63,11 @@
 - `@Valid` on `@RequestBody` in the controller activates validation
 - On failure: Spring throws `MethodArgumentNotValidException` → automatic `400 Bad Request` before controller code runs
 - Cross-field validation (e.g. new password ≠ old password) requires a custom `ConstraintValidator` — covered separately
+
+### 14. Exception Handling with @ControllerAdvice
+- `@ControllerAdvice` + `@RestController` — a global exception handler class that intercepts exceptions from all controllers
+- `@ExceptionHandler(SomeException.class)` — routes a specific exception type to a handler method
+- `@ResponseStatus(HttpStatus.BAD_REQUEST)` — sets the HTTP status on the response
+- `MethodArgumentNotValidException.getBindingResult().getFieldErrors()` — extracts field-level validation errors
+- Each `FieldError` has `.getField()` (field name) and `.getDefaultMessage()` (constraint message)
+- Custom messages via `message = "..."` on constraint annotations (e.g. `@NotBlank(message = "Name is required")`)
