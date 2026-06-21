@@ -95,3 +95,14 @@
 - `UsernamePasswordAuthenticationToken(username, null, List.of())` — Spring Security's way of representing an authenticated user in the security context
 - `@Value("${jwt.secret}")` on a constructor parameter injects the secret from `application.properties`
 - `Optional` from `findBy*` is never `null` — use `.isEmpty()` / `.isPresent()`, or return plain object type and null-check
+
+### 17. Role-Based Access Control (RBAC)
+
+- `Role` enum in entity package with `@Enumerated(EnumType.STRING)` on the `User.role` field — stores `"ADMIN"`/`"USER"` as strings, not integers
+- `ddl-auto=update` doesn't alter existing column types — must drop/recreate DB or run `ALTER TABLE` manually when changing enum storage type
+- `CustomUserDetailsService implements UserDetailsService` — bridges your `User` entity to Spring Security; `loadUserByUsername` returns a `UserDetails` built with `.username()`, `.password()`, `.roles()`
+- `.roles("ADMIN")` auto-prefixes to `ROLE_ADMIN` internally — matches `hasRole('ADMIN')` in `@PreAuthorize`
+- `JwtAuthFilter` must load `UserDetails` and pass `userDetails.getAuthorities()` to `UsernamePasswordAuthenticationToken` — otherwise roles are never set in the security context
+- `@EnableMethodSecurity` on `SecurityConfig` — enables `@PreAuthorize` on controller methods
+- `@PreAuthorize("hasRole('ADMIN')")` on a method — Spring wraps the bean in a proxy that checks the expression before calling the method
+- `AccessDeniedHandler` in `.exceptionHandling()` — hook for logging or customising 403 responses; use `@Slf4j` for structured logging
