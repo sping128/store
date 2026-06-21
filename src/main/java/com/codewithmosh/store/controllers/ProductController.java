@@ -1,7 +1,9 @@
 package com.codewithmosh.store.controllers;
 
-import java.util.List;
-
+import org.springdoc.core.converters.models.PageableAsQueryParam;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +23,7 @@ import com.codewithmosh.store.mappers.ProductMapper;
 import com.codewithmosh.store.repositories.CategoryRepository;
 import com.codewithmosh.store.repositories.ProductRepository;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
@@ -32,15 +35,17 @@ public class ProductController {
     private final CategoryRepository categoryRepository;
 
     @GetMapping
-    public List<ProductDto> getAllProducts(
-            @RequestParam(required = false, name = "categoryId") Byte categoryId) {
-        List<Product> products;
+    @PageableAsQueryParam
+    public Page<ProductDto> getAllProducts(
+            @RequestParam(required = false, name = "categoryId") Long categoryId,
+            @Parameter(hidden = true) @PageableDefault(size = 5) Pageable pageQuery) {
+        Page<Product> products;
         if (categoryId != null) {
-            products = productRepository.findByCategoryId(categoryId);
+            products = productRepository.findByCategoryId(categoryId, pageQuery);
         } else {
-            products = productRepository.findAllWithCategory();
+            products = productRepository.findAll(pageQuery);
         }
-        return products.stream().map(productMapper::toDto).toList();
+        return products.map(productMapper::toDto);
     }
 
     @PostMapping

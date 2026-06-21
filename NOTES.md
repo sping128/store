@@ -64,6 +64,17 @@
 - On failure: Spring throws `MethodArgumentNotValidException` → automatic `400 Bad Request` before controller code runs
 - Cross-field validation (e.g. new password ≠ old password) requires a custom `ConstraintValidator` — covered separately
 
+### 15. Pagination & Sorting
+
+- `Pageable` parameter in controller — Spring auto-binds `?page=0&size=10&sort=name,asc` from query string
+- `Page<T>` return type wraps results with metadata: `content`, `totalPages`, `totalElements`, `size`, `number`
+- `JpaRepository` inherits `findAll(Pageable)` from `PagingAndSortingRepository` — no extra code needed
+- Custom repository methods support pagination: `Page<Product> findByCategoryId(Long id, Pageable pageable)`
+- `page.map(mapper::toDto)` transforms content while preserving pagination metadata (don't use `.stream().map().toList()`)
+- `@PageableDefault(size = 5)` sets the default page size when caller omits `?size=`
+- Swagger: `@PageableAsQueryParam` on the method + `@Parameter(hidden = true)` on the `Pageable` param renders individual `page`/`size`/`sort` fields
+- Sort format: `?sort=price,desc` — field name must match the entity field, not the DTO
+
 ### 14. Exception Handling with @ControllerAdvice
 - `@ControllerAdvice` + `@RestController` — a global exception handler class that intercepts exceptions from all controllers
 - `@ExceptionHandler(SomeException.class)` — routes a specific exception type to a handler method
