@@ -7,10 +7,10 @@ import lombok.Data;
 
 @Data
 public class RegisterUserDto {
-    @NotBlank
+    @NotBlank(message = "Name must not be null or empty")
     private String name;
-    @Email
+    @Email(message = "Email must be in a correct email format")
     private String email;
-    @Size(min = 6)
+    @Size(min = 6, message="Password must be at least 6 characters")
     private String password;
 }
