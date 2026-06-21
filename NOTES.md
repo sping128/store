@@ -64,6 +64,14 @@
 - On failure: Spring throws `MethodArgumentNotValidException` → automatic `400 Bad Request` before controller code runs
 - Cross-field validation (e.g. new password ≠ old password) requires a custom `ConstraintValidator` — covered separately
 
+### 14. Exception Handling with @ControllerAdvice
+- `@ControllerAdvice` + `@RestController` — a global exception handler class that intercepts exceptions from all controllers
+- `@ExceptionHandler(SomeException.class)` — routes a specific exception type to a handler method
+- `@ResponseStatus(HttpStatus.BAD_REQUEST)` — sets the HTTP status on the response
+- `MethodArgumentNotValidException.getBindingResult().getFieldErrors()` — extracts field-level validation errors
+- Each `FieldError` has `.getField()` (field name) and `.getDefaultMessage()` (constraint message)
+- Custom messages via `message = "..."` on constraint annotations (e.g. `@NotBlank(message = "Name is required")`)
+
 ### 15. Pagination & Sorting
 
 - `Pageable` parameter in controller — Spring auto-binds `?page=0&size=10&sort=name,asc` from query string
@@ -75,10 +83,15 @@
 - Swagger: `@PageableAsQueryParam` on the method + `@Parameter(hidden = true)` on the `Pageable` param renders individual `page`/`size`/`sort` fields
 - Sort format: `?sort=price,desc` — field name must match the entity field, not the DTO
 
-### 14. Exception Handling with @ControllerAdvice
-- `@ControllerAdvice` + `@RestController` — a global exception handler class that intercepts exceptions from all controllers
-- `@ExceptionHandler(SomeException.class)` — routes a specific exception type to a handler method
-- `@ResponseStatus(HttpStatus.BAD_REQUEST)` — sets the HTTP status on the response
-- `MethodArgumentNotValidException.getBindingResult().getFieldErrors()` — extracts field-level validation errors
-- Each `FieldError` has `.getField()` (field name) and `.getDefaultMessage()` (constraint message)
-- Custom messages via `message = "..."` on constraint annotations (e.g. `@NotBlank(message = "Name is required")`)
+### 16. JWT Authentication
+
+- Added `spring-boot-starter-security`, `jjwt-api`, `jjwt-impl`, `jjwt-jackson` dependencies
+- `JwtService` — generates and validates signed JWT tokens using a `SecretKey` built from a Base64 secret in `application.properties`
+  - `generateToken(username)` — builds a JWT with subject, issuedAt, expiration, signed with HMAC-SHA key
+  - `extractUsername(token)` — parses and verifies the token, returns the subject claim
+- `JwtAuthFilter extends OncePerRequestFilter` — runs once per request, reads `Authorization: Bearer <token>`, extracts username, sets `SecurityContextHolder` authentication
+- `SecurityConfig` — `@EnableWebSecurity` bean that configures stateless sessions, disables CSRF and form login, permits `/api/auth/login` and Swagger paths, locks everything else
+- `AuthController` — `POST /api/auth/login` verifies username + password, returns a JWT string
+- `UsernamePasswordAuthenticationToken(username, null, List.of())` — Spring Security's way of representing an authenticated user in the security context
+- `@Value("${jwt.secret}")` on a constructor parameter injects the secret from `application.properties`
+- `Optional` from `findBy*` is never `null` — use `.isEmpty()` / `.isPresent()`, or return plain object type and null-check
