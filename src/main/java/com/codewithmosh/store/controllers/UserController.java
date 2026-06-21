@@ -26,6 +26,7 @@ import com.codewithmosh.store.mappers.UserMapper;
 import com.codewithmosh.store.repositories.UserRepository;
 import com.codewithmosh.store.services.UserService;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
@@ -57,7 +58,7 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserDto> createUser(
-            @RequestBody RegisterUserDto dto,
+            @Valid @RequestBody RegisterUserDto dto,
             UriComponentsBuilder uriBuilder) {
         User user = userMapper.toEntity(dto);
         userRepository.save(user);
@@ -87,7 +88,7 @@ public class UserController {
     }
 
     @PostMapping("/{id}/change-password")
-    public ResponseEntity<Void> changePassword(@PathVariable Long id, @RequestBody ChangePasswordRequest request) {
+    public ResponseEntity<Void> changePassword(@PathVariable Long id, @Valid @RequestBody ChangePasswordRequest request) {
         var user = userRepository.findById(id).orElse(null);
         if (user == null)
             return ResponseEntity.notFound().build();

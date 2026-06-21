@@ -55,3 +55,11 @@
 ### 12. Full CRUD for a Resource
 - Implemented full GET / POST / PUT / DELETE for both Users and Products
 - Change password endpoint (`POST /api/users/{id}/change-password`)
+
+### 13. Bean Validation
+- Added `spring-boot-starter-validation` dependency
+- Field-level constraint annotations: `@NotBlank`, `@Email`, `@Size(min = ?)`
+- Annotations live in `jakarta.validation.constraints.*`
+- `@Valid` on `@RequestBody` in the controller activates validation
+- On failure: Spring throws `MethodArgumentNotValidException` → automatic `400 Bad Request` before controller code runs
+- Cross-field validation (e.g. new password ≠ old password) requires a custom `ConstraintValidator` — covered separately
