@@ -4,10 +4,10 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
-import com.codewithmosh.store.dtos.RegisterUserDto;
-import com.codewithmosh.store.dtos.UpdateUserDto;
 import com.codewithmosh.store.dtos.UserDto;
 import com.codewithmosh.store.entities.User;
+import com.codewithmosh.store.requests.RegisterUserRequest;
+import com.codewithmosh.store.requests.UpdateUserRequest;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
@@ -15,9 +15,9 @@ public interface UserMapper {
     UserDto toDto(User user);
 
     @Mapping(target = "id", ignore = true)
-    User toEntity(RegisterUserDto dto);
+    User toEntity(RegisterUserRequest dto);
 
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "id", ignore = true)
-    void update(UpdateUserDto dto, @MappingTarget User user);
+    void update(UpdateUserRequest dto, @MappingTarget User user);
 }

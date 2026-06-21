@@ -18,12 +18,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.codewithmosh.store.dtos.ChangePasswordRequest;
-import com.codewithmosh.store.dtos.RegisterUserDto;
-import com.codewithmosh.store.dtos.UpdateUserDto;
 import com.codewithmosh.store.dtos.UserDto;
 import com.codewithmosh.store.entities.User;
 import com.codewithmosh.store.mappers.UserMapper;
 import com.codewithmosh.store.repositories.UserRepository;
+import com.codewithmosh.store.requests.RegisterUserRequest;
+import com.codewithmosh.store.requests.UpdateUserRequest;
 import com.codewithmosh.store.services.UserService;
 
 import jakarta.validation.Valid;
@@ -58,7 +58,7 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserDto> createUser(
-            @Valid @RequestBody RegisterUserDto dto,
+            @Valid @RequestBody RegisterUserRequest dto,
             UriComponentsBuilder uriBuilder) {
         User user = userMapper.toEntity(dto);
         userRepository.save(user);
@@ -69,7 +69,7 @@ public class UserController {
 
     @PutMapping("/{id}")
     public ResponseEntity<UserDto> updateUser(
-            @PathVariable(name = "id") Long id, @RequestBody UpdateUserDto dto) {
+            @PathVariable(name = "id") Long id, @RequestBody UpdateUserRequest dto) {
         var user = userRepository.findById(id).orElse(null);
         if (user == null)
             return ResponseEntity.notFound().build();

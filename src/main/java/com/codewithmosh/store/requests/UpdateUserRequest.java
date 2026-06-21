@@ -1,9 +1,9 @@
-package com.codewithmosh.store.dtos;
+package com.codewithmosh.store.requests;
 
 import lombok.Data;
 
 @Data
-public class UpdateUserDto {
+public class UpdateUserRequest {
     private String name;
     private String email;
 }
