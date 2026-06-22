@@ -9,6 +9,8 @@ import lombok.Data;
 public class RegisterUserRequest {
     @NotBlank(message = "Name must not be null or empty")
     private String name;
+    @NotBlank
+    private String username;
     @Email(message = "Email must be in a correct email format")
     private String email;
     @Size(min = 6, message="Password must be at least 6 characters")
