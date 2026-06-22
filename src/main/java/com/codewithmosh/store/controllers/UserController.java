@@ -18,7 +18,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.codewithmosh.store.dtos.ChangePasswordRequest;
 import com.codewithmosh.store.dtos.UserDto;
-import com.codewithmosh.store.entities.User;
 import com.codewithmosh.store.mappers.UserMapper;
 import com.codewithmosh.store.repositories.UserRepository;
 import com.codewithmosh.store.requests.RegisterUserRequest;
@@ -59,9 +58,7 @@ public class UserController {
     public ResponseEntity<UserDto> createUser(
             @Valid @RequestBody RegisterUserRequest dto,
             UriComponentsBuilder uriBuilder) {
-        User user = userMapper.toEntity(dto);
-        userRepository.save(user);
-        var userDto = userMapper.toDto(user);
+        var userDto = userService.registerUser(dto);
         var uri = uriBuilder.path("api/users/{id}").buildAndExpand(userDto.getId()).toUri();
         return ResponseEntity.created(uri).body(userDto);
     }

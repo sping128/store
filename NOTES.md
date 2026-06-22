@@ -121,3 +121,13 @@
 - `@Transactional(readOnly = true)` on query methods signals the DB to skip write locks — a small but free performance hint
 - Business logic (including exception throwing) belongs in the service layer, not the controller — controllers should only translate service results to HTTP responses
 - Custom exceptions (`UserNotFoundException`, `InvalidPasswordException`) extend `RuntimeException` and are mapped to HTTP status codes in `GlobalExceptionHandler` via `@ExceptionHandler`
+
+### 20. Spring Events & Async Processing — `lesson-20-events-async`
+- `ApplicationEventPublisher` — injected into a service to publish domain events; decouples side effects from the main flow
+- Event class is a plain POJO (no need to extend `ApplicationEvent` since Spring 4.2)
+- `@EventListener` on a method in a `@Component` — Spring automatically calls it when the matching event type is published
+- `@EnableAsync` on a `@Configuration` class — enables async method execution globally
+- `@Async` on a listener method — runs the handler on a separate thread pool so the HTTP request returns immediately
+- `@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)` — fires the event only after the transaction commits; prevents the listener from reading stale data if it queries the DB
+- `fallbackExecution = true` — fires even when no active transaction exists (useful for non-transactional publishers)
+- Pattern: publish the event inside the `@Transactional` service method; the listener handles side effects (email, audit log, etc.) independently
