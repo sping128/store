@@ -96,6 +96,16 @@
 - `@Value("${jwt.secret}")` on a constructor parameter injects the secret from `application.properties`
 - `Optional` from `findBy*` is never `null` — use `.isEmpty()` / `.isPresent()`, or return plain object type and null-check
 
+### 18. Refresh Tokens
+
+- Login returns two JWTs: a short-lived **access token** (15 min) and a long-lived **refresh token** (1 day)
+- `JwtService.generateToken` is `private`; callers use `generateAccessToken` / `generateRefreshToken` wrappers with durations as `private static final` constants
+- A `type` claim (`"access"` / `"refresh"`) is embedded in every token to prevent misuse — constants live in `JwtService` as `TOKEN_TYPE_ACCESS` / `TOKEN_TYPE_REFRESH`
+- `POST /api/auth/refresh` accepts `{"refreshToken":"..."}`, validates the token via `extractUsername` + `extractType`, and returns fresh tokens; catches `JwtException` for expired/tampered tokens
+- `POST /api/auth/refresh` is added to `permitAll()` in `SecurityConfig`
+- `JwtAuthFilter` wraps token parsing in a try/catch so an expired access token in the `Authorization` header returns 401 instead of propagating as 500/403
+- Stateless refresh tokens cannot be revoked before expiry — DB-backed tokens (stored and deleted on logout) are required for revocation
+
 ### 17. Role-Based Access Control (RBAC)
 
 - `Role` enum in entity package with `@Enumerated(EnumType.STRING)` on the `User.role` field — stores `"ADMIN"`/`"USER"` as strings, not integers

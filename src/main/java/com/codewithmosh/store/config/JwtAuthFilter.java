@@ -11,6 +11,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.codewithmosh.store.services.CustomUserDetailsService;
 import com.codewithmosh.store.services.JwtService;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,11 +33,18 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
         var token = authHeader.substring(7);
-        var username = jwtService.extractUsername(token);
-        var userDetails = customUserDetailsService.loadUserByUsername(username);
-        var authToken = new UsernamePasswordAuthenticationToken(username, null, userDetails.getAuthorities());
-        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-        SecurityContextHolder.getContext().setAuthentication(authToken);
+        try {
+            var username = jwtService.extractUsername(token);
+            var tokenType = jwtService.extractType(token);
+            if (tokenType.equals(JwtService.TOKEN_TYPE_ACCESS)) {
+                var userDetails = customUserDetailsService.loadUserByUsername(username);
+                var authToken = new UsernamePasswordAuthenticationToken(username, null, userDetails.getAuthorities());
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+            }
+        } catch (JwtException e) {
+            // invalid or expired token — proceed unauthenticated
+        }
         filterChain.doFilter(request, response);
     }
 
