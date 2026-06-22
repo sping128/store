@@ -3,7 +3,6 @@ package com.codewithmosh.store.controllers;
 import java.util.List;
 import java.util.Set;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -88,14 +87,9 @@ public class UserController {
     }
 
     @PostMapping("/{id}/change-password")
-    public ResponseEntity<Void> changePassword(@PathVariable Long id, @Valid @RequestBody ChangePasswordRequest request) {
-        var user = userRepository.findById(id).orElse(null);
-        if (user == null)
-            return ResponseEntity.notFound().build();
-        if (!user.getPassword().equals(request.getOldPassword()))
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        user.setPassword(request.getNewPassword());
-        userRepository.save(user);
+    public ResponseEntity<Void> changePassword(@PathVariable Long id,
+            @Valid @RequestBody ChangePasswordRequest request) {
+        userService.changePassword(id, request);
         return ResponseEntity.noContent().build();
     }
 

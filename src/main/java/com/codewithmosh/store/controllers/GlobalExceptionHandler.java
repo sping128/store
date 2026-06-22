@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.codewithmosh.store.exceptions.InvalidPasswordException;
+import com.codewithmosh.store.exceptions.UserNotFoundException;
+
 @RestController
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -23,5 +26,17 @@ public class GlobalExceptionHandler {
             errors.put(error.getField(), error.getDefaultMessage());
         }
         return errors;
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public String handleUserNotFoundException(UserNotFoundException ex) {
+        return "User not found";
+    }
+
+    @ExceptionHandler(InvalidPasswordException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public String handleInvalidPasswordException(InvalidPasswordException ex) {
+        return "Invalid Password";
     }
 }

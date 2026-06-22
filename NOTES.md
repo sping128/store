@@ -96,6 +96,16 @@
 - `@Value("${jwt.secret}")` on a constructor parameter injects the secret from `application.properties`
 - `Optional` from `findBy*` is never `null` — use `.isEmpty()` / `.isPresent()`, or return plain object type and null-check
 
+### 19. @Transactional
+
+- `@Transactional` wraps a method in a DB transaction — Spring opens it before the method runs, commits on success, rolls back on `RuntimeException`
+- Spring uses a **proxy** to intercept calls: the annotation only takes effect when called through the proxy (i.e., from outside the bean)
+- **Self-invocation gotcha**: calling `this.method()` bypasses the proxy — `@Transactional` on the inner method is silently ignored
+- Default rollback: unchecked exceptions (`RuntimeException`) only — checked exceptions require `@Transactional(rollbackFor = ...)`
+- `@Transactional(readOnly = true)` on query methods signals the DB to skip write locks — a small but free performance hint
+- Business logic (including exception throwing) belongs in the service layer, not the controller — controllers should only translate service results to HTTP responses
+- Custom exceptions (`UserNotFoundException`, `InvalidPasswordException`) extend `RuntimeException` and are mapped to HTTP status codes in `GlobalExceptionHandler` via `@ExceptionHandler`
+
 ### 18. Refresh Tokens
 
 - Login returns two JWTs: a short-lived **access token** (15 min) and a long-lived **refresh token** (1 day)
