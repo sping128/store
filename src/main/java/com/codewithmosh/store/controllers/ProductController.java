@@ -18,11 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.codewithmosh.store.dtos.ProductDto;
-import com.codewithmosh.store.entities.Category;
-import com.codewithmosh.store.entities.Product;
-import com.codewithmosh.store.mappers.ProductMapper;
-import com.codewithmosh.store.repositories.CategoryRepository;
-import com.codewithmosh.store.repositories.ProductRepository;
+import com.codewithmosh.store.services.ProductService;
 
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.AllArgsConstructor;
@@ -31,66 +27,43 @@ import lombok.AllArgsConstructor;
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
-    private final ProductRepository productRepository;
-    private final ProductMapper productMapper;
-    private final CategoryRepository categoryRepository;
+    private final ProductService productService;
 
     @GetMapping
     @PageableAsQueryParam
     public Page<ProductDto> getAllProducts(
-            @RequestParam(required = false, name = "categoryId") Long categoryId,
+            @RequestParam(required = false) Long categoryId,
             @Parameter(hidden = true) @PageableDefault(size = 5) Pageable pageQuery) {
-        Page<Product> products;
-        if (categoryId != null) {
-            products = productRepository.findByCategoryId(categoryId, pageQuery);
-        } else {
-            products = productRepository.findAll(pageQuery);
-        }
-        return products.map(productMapper::toDto);
+        return productService.getAllProducts(categoryId, pageQuery);
+    }
+
+    @GetMapping("{id}")
+    public ResponseEntity<ProductDto> getProduct(@PathVariable Long id) {
+        ProductDto dto = productService.getProduct(id);
+        return dto != null ? ResponseEntity.ok(dto) : ResponseEntity.notFound().build();
     }
 
     @PostMapping
-    public ResponseEntity<ProductDto> CreateProduct(
+    public ResponseEntity<ProductDto> createProduct(
             @RequestBody ProductDto dto,
             UriComponentsBuilder uriBuilder) {
-        Product product = productMapper.toEntity(dto);
-        if (dto.getCategoryId() != null) {
-            Category category = categoryRepository.findById(dto.getCategoryId())
-                    .orElse(null);
-            if (category == null)
-                return ResponseEntity.badRequest().build();
-            product.setCategory(category);
-        }
-        productRepository.save(product);
-        dto.setId(product.getId());
-        var uri = uriBuilder.path("/api/products/{id}").buildAndExpand(dto.getId()).toUri();
-        return ResponseEntity.created(uri).body(dto);
+        ProductDto created = productService.createProduct(dto);
+        if (created == null) return ResponseEntity.badRequest().build();
+        var uri = uriBuilder.path("/api/products/{id}").buildAndExpand(created.getId()).toUri();
+        return ResponseEntity.created(uri).body(created);
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<ProductDto> EditProduct(@PathVariable Long id, @RequestBody ProductDto dto) {
-        Product product = productRepository.findById(id).orElseThrow(() -> new RuntimeException("Product not found"));
-        productMapper.update(dto, product);
-        if (dto.getCategoryId() != null) {
-            Category category = categoryRepository.findById(dto.getCategoryId())
-                    .orElse(null);
-            if (category == null)
-                return ResponseEntity.badRequest().build();
-            product.setCategory(category);
-        } else {
-            product.setCategory(null);
-        }
-        productRepository.save(product);
-        return ResponseEntity.ok(productMapper.toDto(product));
+    public ResponseEntity<ProductDto> updateProduct(@PathVariable Long id, @RequestBody ProductDto dto) {
+        ProductDto updated = productService.updateProduct(id, dto);
+        return updated != null ? ResponseEntity.ok(updated) : ResponseEntity.badRequest().build();
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("{id}")
-    public ResponseEntity<Void> DeleteProduct(@PathVariable Long id) {
-        if (!productRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        productRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+        return productService.deleteProduct(id)
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
     }
 }

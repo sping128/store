@@ -131,3 +131,12 @@
 - `@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)` — fires the event only after the transaction commits; prevents the listener from reading stale data if it queries the DB
 - `fallbackExecution = true` — fires even when no active transaction exists (useful for non-transactional publishers)
 - Pattern: publish the event inside the `@Transactional` service method; the listener handles side effects (email, audit log, etc.) independently
+
+### 21. Caching with @Cacheable — `lesson-21-caching`
+- `spring-boot-starter-cache` dependency — brings in Spring's cache abstraction; uses a simple in-memory `ConcurrentHashMap` by default (no extra config needed for dev/learning)
+- `@EnableCaching` on a `@Configuration` or `@SpringBootApplication` class — activates Spring's cache proxy infrastructure, same proxy pattern as `@Transactional` and `@Async`
+- `@Cacheable(value="products", key="#id")` on a service method — on first call, executes the method and stores the result; on subsequent calls with the same key, skips the method and returns the cached value
+- `@CachePut(value="products", key="#id")` on update — always executes the method and updates the cache entry; prevents stale data after a write
+- `@CacheEvict(value="products", key="#id")` on delete — removes the entry from the cache when the underlying data is gone
+- Cache annotations only work when called through the Spring proxy (same self-invocation gotcha as `@Transactional`)
+- For production, swap the in-memory cache for Redis by adding `spring-boot-starter-data-redis` and setting `spring.cache.type=redis`
