@@ -24,7 +24,7 @@ public class CacheConfig {
                 .activateDefaultTyping(
                         BasicPolymorphicTypeValidator.builder()
                                 .allowIfSubType("com.codewithmosh.store.")
-                                // BigDecimal is "final" but Jackson still tags it under NON_FINAL typing
+                                // BigDecimal is not final, so NON_FINAL typing tags it too
                                 .allowIfSubType("java.math.")
                                 .build(),
                         DefaultTyping.NON_FINAL)

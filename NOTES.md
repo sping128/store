@@ -148,7 +148,8 @@
 - Keys: `StringRedisSerializer` — human-readable keys like `products::3` visible in `redis-cli`
 - Values: custom `RedisSerializer<Object>` using Jackson 3 (`tools.jackson`) `JsonMapper` with `activateDefaultTyping` — embeds the class name in JSON so Spring can deserialize back to the correct type
 - `BasicPolymorphicTypeValidator.builder().allowIfSubType("com.codewithmosh.store.")` — restricts polymorphic deserialization to classes in our own package; `allowIfBaseType(Object.class)` would allow *any* class name embedded in the JSON to be instantiated, which is a deserialization gadget-chain risk if that JSON is ever untrusted
-- Gotcha: Jackson still embeds a type id for a handful of "unsafe final" JDK types (e.g. `BigDecimal`) even under `NON_FINAL` typing, so the allow-list needs a matching entry (`allowIfSubType("java.math.")`) or those fields fail to deserialize with `InvalidTypeIdException`
+- `DefaultTyping.NON_FINAL` tags every value whose declared type is not final, so `BigDecimal` (not a final class) gets a type id while `String` (final) does not - the allow-list therefore needs `allowIfSubType("java.math.")` too, or `price` fails to deserialize with `InvalidTypeIdException`
+- Deserialization is not passive parsing: the embedded class name is loaded and instantiated, so whoever can write to Redis chooses which class your JVM constructs - hence an allow-list rather than a deny-list
 - `DefaultTyping` is a top-level class in Jackson 3, not nested inside `ObjectMapper` (breaking change from Jackson 2)
 - `entryTtl(Duration.ofMinutes(10))` — entries auto-expire; the default in-memory cache never expires
 - `@Cacheable` / `@CachePut` / `@CacheEvict` on `ProductService` need no changes — the abstraction is transparent
