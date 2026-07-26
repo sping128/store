@@ -23,7 +23,9 @@ public class CacheConfig {
         ObjectMapper mapper = JsonMapper.builder()
                 .activateDefaultTyping(
                         BasicPolymorphicTypeValidator.builder()
-                                .allowIfBaseType(Object.class)
+                                .allowIfSubType("com.codewithmosh.store.")
+                                // BigDecimal is "final" but Jackson still tags it under NON_FINAL typing
+                                .allowIfSubType("java.math.")
                                 .build(),
                         DefaultTyping.NON_FINAL)
                 .build();

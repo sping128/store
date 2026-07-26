@@ -32,7 +32,7 @@ public class ProductService {
         return products.map(productMapper::toDto);
     }
 
-    @Cacheable(value = "products", key = "#id")
+    @Cacheable(value = "products", key = "#id", unless = "#result == null")
     @Transactional(readOnly = true)
     public ProductDto getProduct(Long id) {
         return productRepository.findById(id)

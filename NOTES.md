@@ -132,19 +132,6 @@
 - `fallbackExecution = true` — fires even when no active transaction exists (useful for non-transactional publishers)
 - Pattern: publish the event inside the `@Transactional` service method; the listener handles side effects (email, audit log, etc.) independently
 
-### 22. Redis Cache — `lesson-22-redis-cache`
-- `spring-boot-starter-data-redis` — adds Redis client (Lettuce by default) and `RedisCacheManager`
-- `spring.cache.type=redis`, `spring.data.redis.host`, `spring.data.redis.port` — switches cache backend to Redis
-- `CacheConfig` — `@Bean RedisCacheConfiguration` configures serialization and TTL for all caches
-- Keys: `StringRedisSerializer` — human-readable keys like `products::3` visible in `redis-cli`
-- Values: custom `RedisSerializer<Object>` using Jackson 3 (`tools.jackson`) `JsonMapper` with `activateDefaultTyping` — embeds the class name in JSON so Spring can deserialize back to the correct type
-- `BasicPolymorphicTypeValidator.builder().allowIfBaseType(Object.class)` — Jackson 3's public replacement for the package-private `LaissezFaireSubTypeValidator`
-- `DefaultTyping` is a top-level class in Jackson 3, not nested inside `ObjectMapper` (breaking change from Jackson 2)
-- `entryTtl(Duration.ofMinutes(10))` — entries auto-expire; the default in-memory cache never expires
-- `@Cacheable` / `@CachePut` / `@CacheEvict` on `ProductService` need no changes — the abstraction is transparent
-- JSON format stored in Redis: `["com.example.MyDto", {...fields...}]` — first element is the type, second is the data
-- For production: use `RedisCacheManagerBuilderCustomizer` to set per-cache TTLs instead of one global default
-
 ### 21. Caching with @Cacheable — `lesson-21-caching`
 - `spring-boot-starter-cache` dependency — brings in Spring's cache abstraction; uses a simple in-memory `ConcurrentHashMap` by default (no extra config needed for dev/learning)
 - `@EnableCaching` on a `@Configuration` or `@SpringBootApplication` class — activates Spring's cache proxy infrastructure, same proxy pattern as `@Transactional` and `@Async`
@@ -153,3 +140,18 @@
 - `@CacheEvict(value="products", key="#id")` on delete — removes the entry from the cache when the underlying data is gone
 - Cache annotations only work when called through the Spring proxy (same self-invocation gotcha as `@Transactional`)
 - For production, swap the in-memory cache for Redis by adding `spring-boot-starter-data-redis` and setting `spring.cache.type=redis`
+
+### 22. Redis Cache — `lesson-22-redis-cache`
+- `spring-boot-starter-data-redis` — adds Redis client (Lettuce by default) and `RedisCacheManager`
+- `spring.cache.type=redis`, `spring.data.redis.host`, `spring.data.redis.port` — switches cache backend to Redis
+- `CacheConfig` — `@Bean RedisCacheConfiguration` configures serialization and TTL for all caches
+- Keys: `StringRedisSerializer` — human-readable keys like `products::3` visible in `redis-cli`
+- Values: custom `RedisSerializer<Object>` using Jackson 3 (`tools.jackson`) `JsonMapper` with `activateDefaultTyping` — embeds the class name in JSON so Spring can deserialize back to the correct type
+- `BasicPolymorphicTypeValidator.builder().allowIfSubType("com.codewithmosh.store.")` — restricts polymorphic deserialization to classes in our own package; `allowIfBaseType(Object.class)` would allow *any* class name embedded in the JSON to be instantiated, which is a deserialization gadget-chain risk if that JSON is ever untrusted
+- Gotcha: Jackson still embeds a type id for a handful of "unsafe final" JDK types (e.g. `BigDecimal`) even under `NON_FINAL` typing, so the allow-list needs a matching entry (`allowIfSubType("java.math.")`) or those fields fail to deserialize with `InvalidTypeIdException`
+- `DefaultTyping` is a top-level class in Jackson 3, not nested inside `ObjectMapper` (breaking change from Jackson 2)
+- `entryTtl(Duration.ofMinutes(10))` — entries auto-expire; the default in-memory cache never expires
+- `@Cacheable` / `@CachePut` / `@CacheEvict` on `ProductService` need no changes — the abstraction is transparent
+- `@Cacheable(..., unless = "#result == null")` on `getProduct` — without it, Spring caches a miss (`null`) too, so a product created right after a failed lookup for the same id would keep reading as "not found" until the entry expires
+- JSON format stored in Redis: `["com.example.MyDto", {...fields...}]` — first element is the type, second is the data
+- For production: use `RedisCacheManagerBuilderCustomizer` to set per-cache TTLs instead of one global default
